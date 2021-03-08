@@ -93,10 +93,33 @@ func runSystem():
 					jump = true
 					
 				_:
-					var addr = opcode & 0x0FFF
-					pc = addr
+					var address = opcode & 0x0FFF
+					pc = address
 					jump = true
-					
+		0x1000: # JP
+			var address = opcode & 0x0FFF
+			pc = address
+			jump = true
+			
+		0x2000: # CALL
+			var address = opcode & 0x0FFF
+			stack[sp] = pc
+			sp += 1
+			
+			pc = address
+			
+		0x3000: # SNE Vx, byte
+			var vx = (opcode & 0x0F00) > 8
+			var byte = (opcode & 0x00FF)
+			
+			if (registers[vx] != byte):
+				pc += 2
+				
+			if (registers[vx] != byte):
+				pc += 2
+		_:
+			print("Unsopported opcode: %X", opcode)
+			
 	if (jump == false):
 		pc += 2
 		
@@ -108,10 +131,28 @@ func runSystem():
 			$AudioStreamPlayer.play()
 		
 		soundTimer -= 1
+		
+func loadRom(rom):
+	var file = File.new()
+	
+	if (file.file_exists(rom)):
+		initSystem()
+		file.open(rom, File.READ)
+		
+		var offset = 0
+		
+		while (!file.eof_reached()):
+			memory[0x200 + offset] = file.get_8()
+			canRun = true
+			file.close()
+			
+			print("Rom loaded.")
+	else:
+		print("Rom not found")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	loadRom(SysData.Rom)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

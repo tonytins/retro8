@@ -20,6 +20,10 @@ config/description="Chip8 emulator."
 run/main_scene="res://scenes/Game.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+SysData="*res://scripts/SysData.gd"
+
 [rendering]
 
 quality/driver/driver_name="GLES2"
