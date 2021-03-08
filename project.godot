@@ -15,8 +15,8 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Retro8"
-config/description="Chip8 emulator."
+config/name="Retro-8"
+config/description="Chip-8 emulator."
 run/main_scene="res://scenes/Game.tscn"
 config/icon="res://icon.png"
 

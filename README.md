@@ -1,6 +1,6 @@
-# Retro8
+# Retro-8
 
-Retro8 is a CHIP-8 emulator based on Godot 3 and written in GDScript that I hope to turn into a fantasy console.
+Retro-8 is a [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) emulator based on Godot 3 and written in GDScript that I hope to turn into a fantasy console.
 
 ## License
 

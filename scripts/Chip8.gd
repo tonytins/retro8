@@ -32,9 +32,9 @@ var fontSet = [
 	0xF0, 0x80, 0xF0, 0x80, 0x80  # F
 ]
 
+
 export var displayWidth = 64
 export var displayHeight = 32
-
 export var memSize = 4096
 export var numRegisters = 16
 var displaySize = (displayWidth * displayHeight)
