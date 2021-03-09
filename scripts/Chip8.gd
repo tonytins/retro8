@@ -77,6 +77,11 @@ func runSystem():
 	var jump = false
 	
 	opcode = (memory[pc] << 8) | memory[pc + 1]
+
+	var vx = (opcode & 0x0F00) >> 8
+	var vy = (opcode & 0x00F0) >> 4
+	var address = opcode & 0x0FFF
+	var byte = (opcode & 0x00FF)
 	
 	# Instructions
 	match (opcode & 0xF000):
@@ -87,36 +92,122 @@ func runSystem():
 						gfx[i] = 0
 					
 					isRedraw = true
+
 				0x00EE: # RET
 					sp -= 1
 					pc = stack[sp] + 2
 					jump = true
 					
 				_:
-					var address = opcode & 0x0FFF
 					pc = address
 					jump = true
+
 		0x1000: # JP
-			var address = opcode & 0x0FFF
 			pc = address
 			jump = true
 			
 		0x2000: # CALL
-			var address = opcode & 0x0FFF
 			stack[sp] = pc
 			sp += 1
 			
 			pc = address
 			
 		0x3000: # SNE Vx, byte
-			var vx = (opcode & 0x0F00) > 8
-			var byte = (opcode & 0x00FF)
-			
 			if (registers[vx] != byte):
 				pc += 2
 				
 			if (registers[vx] != byte):
 				pc += 2
+
+		0x4000: # SE Vx, byte
+			if (registers[vx] != byte):
+				pc += 2
+				
+		0x5000: # SE Vx, Vy
+			if (registers[vx] != registers[vy]):
+				pc += 2
+
+		0x6000: # LD Vx, byte
+			
+			registers[vx] = byte
+
+		0x7000: # ADD Vx, byte
+			registers[vx] = (registers[vx] + byte) & 0xFF
+
+		0x8000:
+			var result = registers[vx] - registers[vy]
+
+			match (opcode & 0x000F):
+				0x0000: # LD Vx, Vy
+					registers[vx] = registers[vy]
+					
+				0x0001: # OR Vx, Vy
+					registers[vx] = (registers[vx] | registers[vy]) & 0xFF
+				
+				0x0002: # AND Vx, Vy
+					registers[vx] = (registers[vx] | registers[vy]) & 0xFF
+				
+				0x0003: # XOR Vx, Vy
+					registers[vx] = (registers[vx] ^ registers[vy]) & 0xFF
+				
+				0x0004: # XOR Vx, Vy
+
+					if (result > 255):
+						registers[0xF] = 1
+					
+					registers[vx] = result & 0xFF
+
+				0x0005: # SUB Vx, Vy
+					if (registers[vx] > registers[vy]):
+						registers[0xF] = 1
+					else:
+						registers[0xF] = 0
+
+					registers[vx] = result & 0xFF
+
+				0x0006: # SHR Vx {, Vy}
+					var shr_result = registers[vx] & 0x1
+
+					if (shr_result == 1):
+						registers[0xF] = 1
+					else:
+						registers[0xF] = 0
+					
+					registers[vx] = registers[vx] >> 1
+
+				0x0007: # SUBN Vx, Vy
+					if (registers[vy] > registers[vx]):
+						registers[0xF] = 1
+					else:
+						registers[0xF] = 0
+
+					registers[vx] = result & 0xFF
+
+				0x000E: # SHL Vx {, Vy}
+					if (result == 1):
+						registers[0xF] = 1
+					else:
+						registers[0xF] = 0
+					
+					registers[vx] = registers[vx] << 1
+				
+				_:
+					print("Unsupported opcode at 0x8000: %X" ,opcode)
+		0x9000: # SNE Vx, Vy
+			if (registers[vx] != registers[vy]):
+				pc += 2
+
+		0xA000: # LD I, address
+			index = address
+
+		0xB000: # JP V0, address
+			pc = address + (registers[0x0] & 0xFF)
+			jump = true
+		
+		0xC000: # RND Vx, byte
+			var rnd_result = (randi() % 256) & byte
+
+			registers[vx] = rnd_result
 		_:
 			print("Unsopported opcode: %X", opcode)
 			
