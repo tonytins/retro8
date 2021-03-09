@@ -80,8 +80,8 @@ func runSystem():
 
 	var vx = (opcode & 0x0F00) >> 8
 	var vy = (opcode & 0x00F0) >> 4
-	var address = opcode & 0x0FFF
-	var byte = (opcode & 0x00FF)
+	var vaddr = opcode & 0x0FFF
+	var vbyte = (opcode & 0x00FF)
 	
 	# Instructions
 	match (opcode & 0xF000):
@@ -99,28 +99,25 @@ func runSystem():
 					jump = true
 					
 				_:
-					pc = address
+					pc = vaddr
 					jump = true
 
 		0x1000: # JP
-			pc = address
+			pc = vaddr
 			jump = true
 			
 		0x2000: # CALL
 			stack[sp] = pc
 			sp += 1
 			
-			pc = address
+			pc = vaddr
 			
 		0x3000: # SNE Vx, byte
-			if (registers[vx] != byte):
-				pc += 2
-				
-			if (registers[vx] != byte):
+			if (registers[vx] == vbyte):
 				pc += 2
 
 		0x4000: # SE Vx, byte
-			if (registers[vx] != byte):
+			if (registers[vx] != vbyte):
 				pc += 2
 				
 		0x5000: # SE Vx, Vy
@@ -129,10 +126,10 @@ func runSystem():
 
 		0x6000: # LD Vx, byte
 			
-			registers[vx] = byte
+			registers[vx] = vbyte
 
 		0x7000: # ADD Vx, byte
-			registers[vx] = (registers[vx] + byte) & 0xFF
+			registers[vx] = (registers[vx] + vbyte) & 0xFF
 
 		0x8000:
 			var result = registers[vx] - registers[vy]
@@ -198,16 +195,41 @@ func runSystem():
 				pc += 2
 
 		0xA000: # LD I, address
-			index = address
+			index = vaddr
 
 		0xB000: # JP V0, address
-			pc = address + (registers[0x0] & 0xFF)
+			pc = vaddr + (registers[0x0] & 0xFF)
 			jump = true
 		
 		0xC000: # RND Vx, byte
-			var rnd_result = (randi() % 256) & byte
+			var rnd_result = (randi() % 256) & vbyte
 
 			registers[vx] = rnd_result
+		
+		0xD000: # DRW Vx, Vy, nibble
+			var nibble = (opcode & 0x000F)
+			var yPos = registers[vx]
+			var xPos = registers[vy]
+
+			registers[0xF] = 0
+
+			for yLine in range(nibble):
+				var line = memory[index + yLine]
+
+				for xLine in range(8):
+					var pixel = line & (0x80 >> xLine)
+
+					if (pixel != 0):
+						var totalX = (xPos + xLine) % 64
+						var totalY = (yPos + yLine) % 32
+						var px_index = (totalY * 64) + totalX
+
+						if (gfx[px_index] == 1):
+							registers[0xF] = 1
+
+						gfx[px_index] = gfx[px_index] ^ 1
+				
+			isRedraw = true
 		_:
 			print("Unsopported opcode: %X", opcode)
 			
