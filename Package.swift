@@ -17,7 +17,11 @@ let package = Package(
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Raylib", package: "raylib-swift"),
+            ],
+            resources: [
+                .copy("Resources/logo.png"),
             ]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.v6]
 )
