@@ -37,7 +37,10 @@ private func runEmulator(_ chip8: Chip8) {
     InitWindow(Int32(windowWidth), Int32(windowHeight), "Retro-8")
     SetTargetFPS(60)
 
-    let resourcePath = Bundle.module.resourcePath ?? ""
+    guard let resourcePath = Bundle.module.resourcePath else {
+        fatalError("Failed to get resource path")
+    }
+    
     let logoPath = "\(resourcePath)/logo.png"
     let logoImage = LoadImage(logoPath)
     let logoTexture = LoadTextureFromImage(logoImage)
